@@ -1,103 +1,91 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [taskIdString, setTaskIdString] = useState("");
+  const [podsPerSlice, setPodsPerSlice] = useState(512);
+  const [podName, setPodName] = useState("");
+  const [error, setError] = useState("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const calculatePodName = () => {
+    setError("");
+    setPodName("");
+
+    if (!taskIdString || !podsPerSlice) {
+      setError("Please fill in both fields.");
+      return;
+    }
+
+    const match = taskIdString.match(/\/task:(\d+)/);
+    const taskId = match ? parseInt(match[1], 10) : parseInt(taskIdString.split(':').pop() || 'NaN', 10);
+
+    if (isNaN(taskId)) {
+      setError("Invalid Task ID format. It should end with 'task:<number>' or just be the number.");
+      return;
+    }
+
+    const pps = Number(podsPerSlice);
+    if (isNaN(pps) || pps <= 0) {
+      setError("Pods per slice must be a positive number.");
+      return;
+    }
+
+    const slice_id = Math.floor(taskId / pps);
+    const process_id = taskId % pps;
+
+    setPodName(`job-${slice_id}-${process_id}`);
+  };
+
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-50 dark:bg-gray-900">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
+        <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
+          JAX Task ID to Pod Name Converter
+        </h1>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="taskId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Task ID String
+            </label>
+            <input
+              id="taskId"
+              type="text"
+              value={taskIdString}
+              onChange={(e) => setTaskIdString(e.target.value)}
+              placeholder="/job:jax_worker/replica:0/task:2973"
+              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+          <div>
+            <label htmlFor="podsPerSlice" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Pods Per Slice
+            </label>
+            <input
+              id="podsPerSlice"
+              type="number"
+              value={podsPerSlice}
+              onChange={(e) => setPodsPerSlice(Number(e.target.value))}
+              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+            />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={calculatePodName}
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          Convert
+        </button>
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        {podName && (
+          <div className="pt-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Resulting Pod Name:</h2>
+            <p className="mt-1 text-lg font-mono p-3 bg-gray-100 dark:bg-gray-700 rounded-md text-gray-800 dark:text-gray-200">
+              {podName}
+            </p>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
