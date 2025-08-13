@@ -43,10 +43,17 @@ export default function Home() {
         <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
           JAX Task ID to Pod Name Converter
         </h1>
-        <div className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            calculatePodName();
+          }}
+          className="space-y-6"
+        >
+          <div className="space-y-4">
           <div>
             <label htmlFor="taskId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Task ID String
+              Task ID
             </label>
             <input
               id="taskId"
@@ -59,8 +66,9 @@ export default function Home() {
           </div>
           <div>
             <label htmlFor="podsPerSlice" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Pods Per Slice
+              K8s Pods Per Slice (GKE Nodepool)
             </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400">K8s pods per slice is generally the same as the jax processes or the amount of VMs per slice. For example, when using v5p-4096 slices, you would put 512 as pods per slice.</p>
             <input
               id="podsPerSlice"
               type="number"
@@ -71,11 +79,12 @@ export default function Home() {
           </div>
         </div>
         <button
-          onClick={calculatePodName}
+          type="submit"
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           Convert
         </button>
+        </form>
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         {podName && (
           <div className="pt-4">
